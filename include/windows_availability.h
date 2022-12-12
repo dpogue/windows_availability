@@ -258,28 +258,34 @@ namespace __builtin_availability {
     }
 }
 
-#define ___builtin_available_check(x) ([]{ \
+#define ___windows_available_check(x) ([]{ \
     if constexpr (__builtin_availability::detail::checkPlatform(x)) { \
         return __builtin_availability::_isVersionAtLeast(__builtin_availability::detail::parseWindowsVersion(x)); \
     } else { \
         return false; \
     } }())
 
-#define ___builtin_available(x, ...)   ___builtin_available_check(#x) __VA_OPT__(|| ___builtin_available_1(__VA_ARGS__))
-#define ___builtin_available_1(x, ...) ___builtin_available_check(#x) __VA_OPT__(|| ___builtin_available_2(__VA_ARGS__))
-#define ___builtin_available_2(x, ...) ___builtin_available_check(#x) __VA_OPT__(|| ___builtin_available_3(__VA_ARGS__))
-#define ___builtin_available_3(x, ...) ___builtin_available_check(#x) __VA_OPT__(|| ___builtin_available_4(__VA_ARGS__))
-#define ___builtin_available_4(x, ...) ___builtin_available_check(#x) __VA_OPT__(|| ___builtin_available_5(__VA_ARGS__))
-#define ___builtin_available_5(x, ...) ___builtin_available_check(#x)
+#define ___wa_select(a1, a2, a3, a4, a5, a6, ...)   a6
+#define ___wa_num(...)                          ___wa_select(__VA_ARGS__, 5, 4, 3, 2, 1, 0)
+#define ___windows_available_helper_5(x, ...)   ___windows_available_check(#x) || ___windows_available_helper_4(__VA_ARGS__)
+#define ___windows_available_helper_4(x, ...)   ___windows_available_check(#x) || ___windows_available_helper_3(__VA_ARGS__)
+#define ___windows_available_helper_3(x, ...)   ___windows_available_check(#x) || ___windows_available_helper_2(__VA_ARGS__)
+#define ___windows_available_helper_2(x, ...)   ___windows_available_check(#x) || ___windows_available_helper_1(__VA_ARGS__)
+#define ___windows_available_helper_1(x)        ___windows_available_check(#x)
+#define ___windows_available_macro2(c, ...)     ___windows_available_helper_##c(__VA_ARGS__)
+#define ___windows_available_macro1(c, ...)     ___windows_available_macro2(c, __VA_ARGS__)
+#define ___windows_available(...)               ___windows_available_macro1(___wa_num(__VA_ARGS__), __VA_ARGS__)
 
-#define windows_version_available ___builtin_available
+#define windows_version_available               ___windows_available
+#define windows_version(...)                    __VA_ARGS__
 
 #ifndef NO_BUILTIN_AVAILABLE_CLOBBER
-#define __builtin_available ___builtin_available
+#define __builtin_available                     ___windows_available
 #endif
 
 #else // _WIN32
 
-#define windows_version_available(...) false
+#define windows_version_available(...)          false
+#define windows_version(...)
 
 #endif // _WIN32
